@@ -11,6 +11,10 @@ all: clean check test
 clean:
 	@go clean -r
 
+.PHONY: clean-build
+clean-build:
+	@rm -rf build
+
 .PHONY: fmt
 fmt:
 	@go fmt ./...
@@ -77,8 +81,8 @@ get-tools:
 	@go get -u honnef.co/go/tools/cmd/staticcheck
 
 OUTPUT_DIR = build
-OS = "darwin freebsd linux windows"
-ARCH = "386 amd64 arm"
+OS = "darwin linux"
+ARCH = "amd64"
 OSARCH = "!darwin/386 !darwin/arm !windows/arm"
 GIT_COMMIT = $(shell git describe --always)
 
@@ -86,9 +90,9 @@ GIT_COMMIT = $(shell git describe --always)
 release: check test clean build package
 
 .PHONY: build
-build:
+build: clean-build
 	mkdir ${OUTPUT_DIR}
-	CGO_ENABLED=0 GOARM=5 gox -ldflags "-w -X main.version=$(GIT_COMMIT)" \
+	CGO_ENABLED=0 gox -ldflags "-w -X main.version=$(GIT_COMMIT)" \
 	-os=${OS} -arch=${ARCH} -osarch=${OSARCH} -output "${OUTPUT_DIR}/pkg/{{.OS}}_{{.Arch}}/{{.Dir}}" \
 	./cmd/tunnel ./cmd/tunneld
 
